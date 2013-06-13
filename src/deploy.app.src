@@ -1,0 +1,12 @@
+{application, deploy,
+ [
+  {description, "SYNRC Cloud Agent"},
+  {vsn, "1"},
+  {registered, []},
+  {applications, [
+                  kernel,
+                  stdlib
+                 ]},
+  {mod, { githubizer_app, []}},
+  {env, []}
+ ]}.
