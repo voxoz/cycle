@@ -1,7 +1,7 @@
-Deploy Server
-=============
+Box Server
+==========
 
-Build, Releasing and Deploy Agent for Synrc Cloud.
+Build, Release and Deploy within Customer LXC Container in Synrc PaaS.
 
 Overview
 --------
@@ -21,6 +21,5 @@ Credits
 -------
 
 * Maxim Sokhatsky
-* Roman Chvanikoff
 
 OM A HUM
