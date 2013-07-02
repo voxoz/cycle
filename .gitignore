@@ -1,0 +1,6 @@
+node
+ebin
+*.dets
+*.gz
+*.dump
+application.config
