@@ -1,0 +1,12 @@
+{application, releaseman,
+ [
+  {description, "BOX VXZ Release Server"},
+  {vsn, "1"},
+  {registered, []},
+  {applications, [
+                  kernel,
+                  stdlib
+                 ]},
+  {mod, { githubizer_app, []}},
+  {env, []}
+ ]}.
