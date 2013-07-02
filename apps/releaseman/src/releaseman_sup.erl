@@ -1,9 +1,14 @@
--module(deploy_app).
--behaviour(application).
--export([start/2, stop/1]).
+-module(releaseman_sup).
+-behaviour(supervisor).
+-export([start_link/0]).
+-export([init/1]).
+-define(CHILD(I, Type), {I, {I, start_link, []}, permanent, 5000, Type, [I]}).
 
-start(_StartType, _StartArgs) ->
-    Sup = githubizer_sup:start_link(),
+start_link() ->
+    supervisor:start_link({local, ?MODULE}, ?MODULE, []).
+
+init([]) ->
+
     {ok, [Port, Url, Nba]} = cfgsrv:get_multiple(["http_server.port", "http_server.url", "http_server.nba"]),
     Dispatch = cowboy_router:compile([
         {'_', [
@@ -12,7 +17,8 @@ start(_StartType, _StartArgs) ->
         ]}
     ]),
     {ok, _} = cowboy:start_http(http, Nba, [{port, Port}],[{env, [{dispatch, Dispatch}]}]),
-    Sup.
 
-stop(_State) ->
-    ok.
+
+    Strategy = {one_for_one, 5, 10},
+    Children = [ ],
+    {ok, {Strategy, Children}}.
