@@ -17,7 +17,7 @@ handle(Req, State) ->
 terminate(_Reason, _Req, _State) -> ok.
 
 cmd({Id,Docroot,Buildlogs,LogFolder},No,List) ->
-    Message = os:cmd(["cd ",Docroot," && bash -c \"",List,"\""]),
+    Message = os:cmd(["cd ",Docroot," && ",List]),
     FileName = binary_to_list(base64:encode(lists:flatten([integer_to_list(No)," ",List]))),
     File = lists:flatten([Buildlogs,"/",LogFolder,"/",FileName]),
     error_logger:info_msg("Command: ~p",[List]),
