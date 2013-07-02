@@ -1,0 +1,2 @@
+-record(pair, {key,value}).
+-record(release, {id,name,user,repo,status,apps}).

@@ -1,6 +1,6 @@
 {application, releaseman,
  [
-  {description, "LXC VXZ Release Server"},
+  {description, "LXC VXZ Release Manager"},
   {vsn, "1"},
   {registered, []},
   {applications, [kernel,stdlib,crypto,public_key,ssl,ranch,cowboy,inets]},

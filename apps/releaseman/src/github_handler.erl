@@ -1,32 +1,41 @@
 -module(github_handler).
+-compile(export_all).
 -behaviour(cowboy_http_handler).
 -export([init/3, handle/2, terminate/3]).
 
 init(_Transport, Req, []) -> {ok, Req, undefined}.
 
 handle(Req, State) ->
-    {ok, Post, Req2} = cowboy_req:body_qs(Req),
-    spawn(fun() -> run(Post) end),
+    {Params,NewReq} = cowboy_req:path(Req),
+    Path = lists:reverse(string:tokens(binary_to_list(Params),"/")),
+    [Repo,User|Rest] = Path,
+    spawn(fun() -> build(Repo,User) end),
     HTML = <<"<h1>202 Project Started to Build</h1>">>,
-    {ok, Req3} = cowboy_req:reply(202, [], HTML, Req2),
+    {ok, Req3} = cowboy_req:reply(202, [], HTML, NewReq),
     {ok, Req3, State}.
 
 terminate(_Reason, _Req, _State) -> ok.
 
-run(Post) ->
-    print_with_datetime("~nHook worker called~n"),
-    {ok, [Docroot, User, Repo]} = cfgsrv:get_multiple(["server.docroot", "github.username", "github.repository"]),
-    [{Bin, true}] = Post,
-    _Decoded = mochijson2:decode(Bin), %% Maybe I will do something nice with it... Later
-    os:cmd("mkdir -p " ++ Docroot),
-    case os:cmd("ls " ++ Docroot) of
-        [] -> os:cmd("git clone git@github.com:" ++ User ++ "/" ++ Repo ++ ".git " ++ Docroot);
+cmd({Id,Docroot,Buildlogs,LogFolder},No,List) ->
+    Message = os:cmd(["cd ",Docroot," && bash -c \"",List,"\""]),
+    FileName = binary_to_list(base64:encode(lists:flatten([integer_to_list(No)," ",List]))),
+    File = lists:flatten([Buildlogs,"/",LogFolder,"/",FileName]),
+    error_logger:info_msg("Command: ~p",[List]),
+    error_logger:info_msg("Output: ~p",[Message]),
+    file:write_file(File,Message).
+
+build(Repo,User) ->
+    Id = User ++ "-" ++ Repo,
+    Docroot = "repos/" ++ Id,
+    Buildlogs = "buildlogs/"++ Id,
+    error_logger:info_msg("Hook worker called ~p",[Docroot]),
+    {{Y,M,D},{H,Min,S}} = calendar:now_to_datetime(now()),
+    LogFolder = io_lib:format("~p-~p-~p ~p:~p:~p",[Y,M,D,H,Min,S]),
+    os:cmd(["mkdir -p \"",Docroot,"\""]),
+    os:cmd(["mkdir -p \"",Buildlogs,"/",LogFolder,"\""]),
+    Ctx = {Id,Docroot,Buildlogs,LogFolder},
+    case os:cmd(["ls ",Docroot]) of
+        [] -> os:cmd(["git clone git@github.com:",User,"/",Repo,".git ",Docroot]);
         _ -> ok end,
-    os:cmd("cd " ++ Docroot ++ " && git pull"),
-    print_with_datetime("New revision pulled~n").
-
-print_with_datetime(Str) -> error_logger:info_msg("[~p.~p.~p ~p:~p:~p.~p] " ++ Str ++ "~n", datetime()).
-
-datetime() ->
-    [{{Y, M, D}, {H, I, S}}, {_ ,_ ,MT}] = [calendar:now_to_local_time(now()), now()],
-    [D, M, Y, H, I, S, MT].
+    Script = ["git pull","rebar get-deps","rebar compile","./stop.sh","./release.sh","./styles.sh","./javascript.sh","./start.sh"],
+    [ cmd(Ctx,No,lists:nth(No,Script)) || No <- lists:seq(1,length(Script)) ].

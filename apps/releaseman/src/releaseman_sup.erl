@@ -9,16 +9,20 @@ start_link() ->
 
 init([]) ->
 
-    {ok, [Port, Url, Nba]} = cfgsrv:get_multiple(["http_server.port", "http_server.url", "http_server.nba"]),
-    Dispatch = cowboy_router:compile([
-        {'_', [
-            {Url, github_handler, []}
-%            {'_', default_handler, []}
+    Dispatch = cowboy_router:compile(
+        [{'_', [
+            {"/static/[...]", cowboy_static, [{directory, {priv_dir, releaseman, [<<"static">>]}},
+                                                {mimetypes, {fun mimetypes:path_to_mimes/2, default}}]},
+            {"/rest/:bucket",            n2o_rest, []}, %% for releases REST interface
+            {"/rest/:bucket/:key",       n2o_rest, []},
+            {"/rest/:bucket/:key/[...]", n2o_rest, []},
+            {"/github/hook/[...]", github_handler, []},
+            {'_', n2o_cowboy, []}
         ]}
     ]),
-    {ok, _} = cowboy:start_http(http, Nba, [{port, Port}],[{env, [{dispatch, Dispatch}]}]),
 
+    releases_rest:init(),
 
-    Strategy = {one_for_one, 5, 10},
-    Children = [ ?CHILD(cfgsrv, worker) ],
-    {ok, {Strategy, Children}}.
+    {ok, _} = cowboy:start_http(http, 10, [{port, config:value(port)}],[{env, [{dispatch, Dispatch}]}]),
+
+    {ok, {{one_for_one, 5, 10}, []}}.

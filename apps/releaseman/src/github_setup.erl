@@ -19,10 +19,7 @@ get_ssh_key(Email) ->
     lists:reverse(Out).
 
 add_deploy_key() ->
-    {ok, [User, Email, Password, Repo]} = cfgsrv:get_multiple(["github.username",
-                                                               "github.email",
-                                                               "github.password",
-                                                               "github.repository"]),
+    [User, Email, Password, Repo] = config:multiple([username,mail,password,repository]),
     Key = get_ssh_key(Email),
     Url = "https://api.github.com/repos/" ++ User ++ "/" ++ Repo ++ "/keys",
     H = [{"Authorization", "Basic " ++ base64:encode_to_string(User ++ ":" ++ Password)},
@@ -42,9 +39,8 @@ present_in_response(Str, Response) ->
         _ -> true end.
 
 create_webhook() ->
-    {ok, [User, Password, Repo, [Hook_path], Domain, Port]} =
-        cfgsrv:get_multiple(["github.username", "github.password", "github.repository",
-        "http_server.url", "server.domain", "http_server.port"]),
+    [User, Password, Repo, Hook_path, Domain, Port] =
+        config:multiple([username,password,repository,url,domain,port]),
 
     Server_url = case [hd(lists:reverse(Domain))] of
         "/" -> lists:reverse(tl(lists:reverse(Domain))) ++ ":" ++ integer_to_list(Port);
@@ -52,7 +48,7 @@ create_webhook() ->
     Hook_url = Server_url ++ Hook_path,
     ApiUrl = "https://api.github.com/repos/" ++ User ++ "/" ++ Repo ++ "/hooks",
     H = [{"Authorization","Basic " ++ base64:encode_to_string(User ++ ":" ++ Password)},
-        {"Content-Type", "text/json"}],
+        {"Content-Type", "text/json"},{"User-Agent","VOXOZ"}],
     {ok, {{"HTTP/1.1", 200, "OK"}, _Headers, Content}} = httpc:request(get, {ApiUrl, H}, [], []),
     case present_in_response(Hook_url, Content) of
         true -> ok;
