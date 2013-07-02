@@ -15,7 +15,8 @@ that select Erlang applications to include into a set of Erlang Releases.
 * Define Application Set (reltool.config)
 * Make Releases (release.sh)
 * Configure Releases (cluster_configure.sh)
-* Deploy (enable releases, switch ports)
+* Deploy inplace (enable releases, switch ports)
+* Deploy to target (XEN, other destinations)
 
 Credits
 -------

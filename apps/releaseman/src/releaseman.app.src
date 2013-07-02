@@ -1,12 +1,9 @@
 {application, releaseman,
  [
-  {description, "BOX VXZ Release Server"},
+  {description, "LXC VXZ Release Server"},
   {vsn, "1"},
   {registered, []},
-  {applications, [
-                  kernel,
-                  stdlib
-                 ]},
-  {mod, { deploy_app, []}},
+  {applications, [kernel,stdlib,crypto,public_key,ssl,ranch,cowboy,inets]},
+  {mod, { releaseman_app, []}},
   {env, []}
  ]}.

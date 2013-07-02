@@ -1,28 +1,19 @@
--module(deploy).
--export([start/0]).
+-module(github_setup).
+-compile(export_all).
 
-start() ->
-    ok = ensure_started([crypto, public_key, ssl, ranch, cowboy, deploy, inets]),
+setup() ->
     ok = add_deploy_key(),
     ok = create_webhook().
 
-ensure_started([]) -> ok;
-ensure_started([App | Apps]) ->
-    Msg = case application:start(App) of
-        ok -> "started";
-        {error, {already_started, App}} -> "was already started" end,
-    error_logger:info_msg("~p " ++ Msg ++ "~n", [App]),
-    ensure_started(Apps).
-
 generate_ssh_key(Email) ->
     [] = os:cmd("mkdir -p ~/.ssh"),
-    [] = os:cmd("ssh-keygen -t rsa -N \"\" -f ~/.ssh/deploy_server -C \"" ++ Email ++ "\" -q"),
-    [] = os:cmd("echo \"\nHost github.com\n\tIdentityFile ~/.ssh/deploy_server\n\" >> ~/.ssh/config").
+    [] = os:cmd("ssh-keygen -t rsa -N \"\" -f ~/.ssh/releaseman -C \"" ++ Email ++ "\" -q"),
+    [] = os:cmd("echo \"\nHost github.com\n\tIdentityFile ~/.ssh/releaseman\n\" >> ~/.ssh/config").
 
 get_ssh_key(Email) ->
-    Key = case os:cmd("if [ -f ~/.ssh/deploy_server.pub ]; then cat ~/.ssh/deploy_server.pub; else exit 0; fi") of
+    Key = case os:cmd("if [ -f ~/.ssh/releaseman.pub ]; then cat ~/.ssh/releaseman.pub; else exit 0; fi") of
         [] -> generate_ssh_key(Email),
-              os:cmd("cat ~/.ssh/deploy_server.pub");
+              os:cmd("cat ~/.ssh/releaseman.pub");
         Res -> Res end,
     [$\n | Out] = lists:reverse(Key),
     lists:reverse(Out).

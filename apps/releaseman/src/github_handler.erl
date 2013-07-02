@@ -1,5 +1,17 @@
--module(hook_wrk).
--export([run/1]).
+-module(github_handler).
+-behaviour(cowboy_http_handler).
+-export([init/3, handle/2, terminate/3]).
+
+init(_Transport, Req, []) -> {ok, Req, undefined}.
+
+handle(Req, State) ->
+    {ok, Post, Req2} = cowboy_req:body_qs(Req),
+    spawn(fun() -> run(Post) end),
+    HTML = <<"<h1>202 Project Started to Build</h1>">>,
+    {ok, Req3} = cowboy_req:reply(202, [], HTML, Req2),
+    {ok, Req3, State}.
+
+terminate(_Reason, _Req, _State) -> ok.
 
 run(Post) ->
     print_with_datetime("~nHook worker called~n"),
