@@ -1,5 +1,5 @@
-Box Server
-==========
+Release Server
+==============
 
 Build, Release and Deploy within Customer LXC Container in Synrc PaaS.
 
