@@ -1,5 +1,6 @@
 -module(github_handler).
 -compile(export_all).
+-include("releases.hrl").
 -behaviour(cowboy_http_handler).
 -export([init/3, handle/2, terminate/3]).
 
@@ -53,3 +54,9 @@ build(Repo,User) ->
         _ -> ok end,
     Script = ["git pull","rebar get-deps","rebar compile","./stop.sh","./release.sh","./styles.sh","./javascript.sh","./start.sh"],
     [ cmd(Ctx,No,lists:nth(No,Script)) || No <- lists:seq(1,length(Script)) ].
+
+create_release(User,Repo) ->
+    ets:insert(releases,#release{user=User,repo=Repo,id=User++"/"++Repo,name=User++"/"++Repo}).
+
+list_releases() -> ets:foldl(fun(C,Acc) -> [C|Acc] end,[],releases).
+
