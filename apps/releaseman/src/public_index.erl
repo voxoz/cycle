@@ -34,7 +34,7 @@ log(Release,Build,Step) ->
 
 releases() ->
     Builds = string:tokens(os:cmd(["ls -1 buildlogs"]),"\n"),
-    [ #h1{ body = "Synrc Continuos Integration"}, #h2{ body = "Builds" },
+    [ #h1{ body = "Continuos Integration"}, #h2{ body = "Builds" },
       [ #p{ body = #link { body = R, url= "/index?release="++R }} || R <- Builds ] ,
       #br{},#br{},#br{},
       #span{ body = "&copy; Synrc Research Center" }

@@ -9,14 +9,21 @@ handle(Req, State) ->
     {Params,NewReq} = cowboy_req:path(Req),
     Path = lists:reverse(string:tokens(binary_to_list(Params),"/")),
     [Repo,User|Rest] = Path,
-    spawn(fun() -> build(Repo,User) end),
-    HTML = <<"<h1>202 Project Started to Build</h1>">>,
+    case global:whereis_name("builder") of
+        undefined -> spawn(fun() -> global:register_name("builder",self()), builder() end);
+        Pid -> global:send("builder",{build,Repo,User}) end,
+    HTML = wf:to_binary(["<h1>202 Project Started to Build</h1><a href=\"/index?release=",User,"-",Repo,"\">",User,"-",Repo,"</a>"]),
     {ok, Req3} = cowboy_req:reply(202, [], HTML, NewReq),
     {ok, Req3, State}.
 
 terminate(_Reason, _Req, _State) -> ok.
 
-cmd({Id,Docroot,Buildlogs,LogFolder},No,List) ->
+builder() ->
+    receive 
+        {build,Repo,User} -> build(Repo,User)
+    end, builder().
+
+cmd({User,Repo,Docroot,Buildlogs,LogFolder},No,List) ->
     Message = os:cmd(["cd ",Docroot," && ",List]),
     FileName = binary_to_list(base64:encode(lists:flatten([integer_to_list(No)," ",List]))),
     File = lists:flatten([Buildlogs,"/",LogFolder,"/",FileName]),
@@ -25,15 +32,14 @@ cmd({Id,Docroot,Buildlogs,LogFolder},No,List) ->
     file:write_file(File,Message).
 
 build(Repo,User) ->
-    Id = User ++ "-" ++ Repo,
-    Docroot = "repos/" ++ Id,
-    Buildlogs = "buildlogs/"++ Id,
+    Docroot = "repos/" ++ Repo,
+    Buildlogs = "buildlogs/"++ User ++ "-" ++ Repo,
     error_logger:info_msg("Hook worker called ~p",[Docroot]),
     {{Y,M,D},{H,Min,S}} = calendar:now_to_datetime(now()),
     LogFolder = io_lib:format("~p-~p-~p ~p:~p:~p",[Y,M,D,H,Min,S]),
     os:cmd(["mkdir -p \"",Docroot,"\""]),
     os:cmd(["mkdir -p \"",Buildlogs,"/",LogFolder,"\""]),
-    Ctx = {Id,Docroot,Buildlogs,LogFolder},
+    Ctx = {User,Repo,Docroot,Buildlogs,LogFolder},
     case os:cmd(["ls ",Docroot]) of
         [] -> os:cmd(["git clone git@github.com:",User,"/",Repo,".git ",Docroot]);
         _ -> ok end,
