@@ -19,7 +19,7 @@ that select Erlang applications to include into a set of Erlang Releases.
 * Continuous Integration Web Pages
 * REST API
 * Deploy inplace (enable releases, switch ports)
-* Deploy to target (XEN, other destinations)
+* Deploy to http://erlangonxen.org/
 
 Credits
 -------
