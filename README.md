@@ -12,15 +12,19 @@ that select Erlang applications to include into a set of Erlang Releases.
 
 * Fetch Deps (rebar get-deps)
 * Compile (rebar compile)
-* Define Application Set (reltool.config)
-* Make Releases (release.sh)
-* Configure Releases (cluster_configure.sh)
+* Make Projects
+* Make Releases (reltool.config)
+* Configure Releases (Add/Remove Apps)
+* Commit/Push Release/Project/App
+* Continuous Integration Web Pages
+* REST API
 * Deploy inplace (enable releases, switch ports)
-* Deploy to target (XEN, other destinations)
+* Deploy to http://erlangonxen.org/
 
 Credits
 -------
 
 * Maxim Sokhatsky
+* Vladimir Kirillov
 
 OM A HUM

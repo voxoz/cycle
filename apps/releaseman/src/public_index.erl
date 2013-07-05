@@ -53,4 +53,3 @@ event(stage) ->
     wf:update(stage,
     #dropdown { options = [#option{ label= "Simple",value= "simple"},#option{ label= "Rich Web",value="richweb"}]}
     ).
-
