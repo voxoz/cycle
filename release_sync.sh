@@ -1,7 +1,8 @@
 #!/bin/bash
 
 wd=`pwd`
-appss=( "rels/release_manager/release/lib/releaseman-1")
+appss=( "rels/release_manager/release/lib/releaseman-1"
+        "rels/release_manager/release/lib/n2o-3.0" )
 
 declare -A sources_apps
 declare -A sources_deps

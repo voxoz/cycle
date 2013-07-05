@@ -34,8 +34,23 @@ log(Release,Build,Step) ->
 
 releases() ->
     Builds = string:tokens(os:cmd(["ls -1 buildlogs"]),"\n"),
+%    create_release() ++
     [ #h1{ body = "Continuos Integration"}, #h2{ body = "Stages" },
       [ #p{ body = #link { body = R, url= "/index?release="++R }} || R <- Builds ] ,
       #br{},#br{},#br{},
       #span{ body = "&copy; Synrc Research Center" }
     ].
+
+create_release() ->
+    [ #h2{ body = "Create Release" },
+    #textbox{ },
+    #dropdown { options = [#option{ label= "Simple",value= "simple"},#option{ label= "Rich Web",value="richweb"}]},
+    #button{ body = "Create", postback=create_release }, #br{},
+    #checkbox { body="new", postback=stage}, #panel {id=stage},
+    #br{} ].
+
+event(stage) -> 
+    wf:update(stage,
+    #dropdown { options = [#option{ label= "Simple",value= "simple"},#option{ label= "Rich Web",value="richweb"}]}
+    ).
+
