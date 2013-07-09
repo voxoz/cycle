@@ -40,17 +40,20 @@ cmd({User,Repo,Docroot,Buildlogs,LogFolder},No,List) ->
     error_logger:info_msg("Output: ~p",[Message]),
     file:write_file(File,Message).
 
+create_dir(Docroot) -> os:cmd("mkdir -p \"" ++ Docroot ++ "\"").
+
 build(Repo,User) ->
     Docroot = "repos/" ++ Repo,
     Buildlogs = "buildlogs/"++ User ++ "-" ++ Repo,
     error_logger:info_msg("Hook worker called ~p",[Docroot]),
     {{Y,M,D},{H,Min,S}} = calendar:now_to_datetime(now()),
     LogFolder = io_lib:format("~p-~p-~p ~p:~p:~p",[Y,M,D,H,Min,S]),
-    os:cmd(["mkdir -p \"",Docroot,"\""]),
+    error_logger:info_msg("Mkdir Docroot ~p",[]),
+    os:cmd(["mkdir -p ",Docroot]),
     os:cmd(["mkdir -p \"",Buildlogs,"/",LogFolder,"\""]),
     Ctx = {User,Repo,Docroot,Buildlogs,LogFolder},
     case os:cmd(["ls ",Docroot]) of
-        [] -> os:cmd(["git clone git@github.com:",User,"/",Repo,".git ",Docroot]);
+        [] -> os:cmd(["git clone git://github.com/",User,"/",Repo,".git ",Docroot]);
         _ -> ok end,
     Script = ["git pull","rebar get-deps","rebar compile","./stop.sh","./release.sh","./styles.sh","./javascript.sh","./start.sh"],
     [ cmd(Ctx,No,lists:nth(No,Script)) || No <- lists:seq(1,length(Script)) ].
