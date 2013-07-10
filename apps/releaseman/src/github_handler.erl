@@ -46,7 +46,7 @@ build(Repo,User) ->
     Docroot = "repos/" ++ Repo,
     Buildlogs = "buildlogs/"++ User ++ "-" ++ Repo,
     error_logger:info_msg("Hook worker called ~p",[Docroot]),
-    {{Y,M,D},{H,Min,S}} = calendar:now_to_datetime(now()),
+    {{Y,M,D},{H,Min,S}} = calendar:universal_time_to_local_time(calendar:now_to_datetime(now())),
     LogFolder = io_lib:format("~p-~p-~p ~p:~p:~p",[Y,M,D,H,Min,S]),
     error_logger:info_msg("Mkdir Docroot ~p",[]),
     os:cmd(["mkdir -p ",Docroot]),
