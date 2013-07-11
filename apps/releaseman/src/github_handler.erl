@@ -55,7 +55,7 @@ build(Repo,User) ->
     case os:cmd(["ls ",Docroot]) of
         [] -> os:cmd(["git clone git://github.com/",User,"/",Repo,".git ",Docroot]);
         _ -> ok end,
-    Script = ["git pull","rebar get-deps","rebar compile","./stop.sh","./release.sh","./styles.sh","./javascript.sh","./start.sh"],
+    Script = ["git pull","rebar delete-deps","rebar get-deps","rebar compile","./stop.sh","./release.sh","./styles.sh","./javascript.sh","./start.sh"],
     [ cmd(Ctx,No,lists:nth(No,Script)) || No <- lists:seq(1,length(Script)) ].
 
 create_release(User,Repo) ->
