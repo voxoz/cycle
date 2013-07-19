@@ -4,15 +4,12 @@ NODE=${1:-"release_manager"}
 
 function release_node {
     rm -rf rels/$1/node/lib
-    rm -rf rels/$1/node/data
     rm -rf rels/$1/node/log
     rm -rf rels/$1/node/releases
     cd rels/$1
     rebar -f generate
     cp -r /usr/lib/erlang/lib/erl_interface-* release/lib
     cd ../..
-    ./nitrogen_static.sh
-    ./release_sync.sh
 }
 
 if [ "$NODE" == "all" ]; then

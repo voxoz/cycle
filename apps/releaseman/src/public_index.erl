@@ -4,7 +4,7 @@
 -include_lib("kernel/include/file.hrl").
 -include_lib("releaseman/include/releases.hrl").
 
-main() -> [ #dtl{file = "index", app=releaseman,bindings=[{title,title()},{body,body()}]} ].
+main() -> [ #dtl{file = "releaseman", app=releaseman,bindings=[{title,title()},{body,body()}]} ].
 title() -> [ <<"RELEASE MANAGER">> ].
 body() ->
     case {wf:qs(<<"release">>),wf:qs(<<"build">>),wf:qs(<<"log">>)} of
