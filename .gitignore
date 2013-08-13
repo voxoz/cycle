@@ -1,6 +1,8 @@
-node
-ebin
+ebin/
 *.dets
 *.gz
 *.dump
 application.config
+deps/
+rels/release_manager/release/
+vmling

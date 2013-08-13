@@ -2,7 +2,7 @@
 -compile(export_all).
 -include_lib("n2o/include/wf.hrl").
 -include_lib("kernel/include/file.hrl").
--include_lib("releaseman/include/releases.hrl").
+-include("releases.hrl").
 
 main() -> [ #dtl{file = "releaseman", app=releaseman,bindings=[{title,title()},{body,body()}]} ].
 title() -> [ <<"RELEASE MANAGER">> ].
