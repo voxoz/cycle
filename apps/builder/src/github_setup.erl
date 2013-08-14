@@ -44,7 +44,9 @@ create_webhook() ->
 
     Server_url = case [hd(lists:reverse(Domain))] of
         "/" -> lists:reverse(tl(lists:reverse(Domain))) ++ ":" ++ integer_to_list(Port);
-        _ -> Domain ++ ":" ++ integer_to_list(Port) end,
+        _ -> Domain ++ ":" ++ integer_to_list(Port)
+    end,
+
     Hook_url = Server_url ++ Hook_path,
     ApiUrl = "https://api.github.com/repos/" ++ User ++ "/" ++ Repo ++ "/hooks",
     H = [{"Authorization","Basic " ++ base64:encode_to_string(User ++ ":" ++ Password)},
