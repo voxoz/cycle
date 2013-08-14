@@ -15,30 +15,54 @@ body() ->
 
 builds(Release) ->
     error_logger:info_msg("builds: ~p",[Release]),
-    Builds = string:tokens(os:cmd(["ls -1 buildlogs/",Release]),"\n"),
+    {ok, Builds} = file:list_dir(["buildlogs/",Release]),
+
     [ #h2{ body = "Builds for " ++ Release },
       [ #p{ body = #link { body = B, url= "/index?release="++Release++"&build="++B }} || B <- Builds ]
     ].
 
 steps(Release,Build) ->
-    error_logger:info_msg("steps: ~p ~p",[Release,Build]),
-    Steps = string:tokens(os:cmd(["ls -1 \"buildlogs/",Release,"/",Build,"\""]),"\n"),
-    [ #h2{ body = "Steps for " ++ Build ++ " build of " ++ Release ++ " release" },
-      [ #p{ body = #link { body = wf:to_list(base64:decode(S)), url= "/index?release="++Release++"&build="++Build++"&log="++S }} || S <- lists:sort(Steps) ]
+    {ok, Steps} = file:list_dir(["buildlogs/",Release,"/",Build]),
+
+    [ #h2{ body = "Steps of " ++ Build ++ " build of " ++ Release ++ " release" },
+        #list{ body = [
+                #li{ body=[
+                        #link {
+                            body = S,
+                            url = "/index?release="++Release++"&build="++Build++"&log="++StepFile },
+                        #pre{
+                            body = step(Release, Build, StepFile)
+                        }
+                    ]
+                } || {StepFile, S} <- lists:sort(
+                    fun({_, T1}, {_, T2}) -> numeric_compare(T1, T2) end,
+                    lists:zip(Steps, [base64:decode_to_string(St) || St <- Steps]))
+            ]
+        }
     ].
+
+step(Release, Build, Step) ->
+    {ok,Bin} = file:read_file(["buildlogs/",Release,"/",Build,"/",Step]),
+    Bin.
 
 log(Release,Build,Step) ->
     error_logger:info_msg("log: ~p ~p ~p",[Release,Build,Step]),
-    {ok,Bin} = file:read_file(["buildlogs/",Release,"/",Build,"/",Step]),
-    [<<"<pre>">>,Bin,<<"</pre>">>].
+    [<<"<pre>">>,step(Release, Build, Step),<<"</pre>">>].
 
 releases() ->
-    Builds = string:tokens(os:cmd(["ls -1 buildlogs"]),"\n"),
+    BuildList = case file:list_dir("buildlogs") of
+        {error, E} ->
+            error_logger:error_msg("buildlogs: ~p", E),
+            #p{ body = "None yet." };
+        {ok, Builds} ->
+            [ #p{ body = #link { body = R, url= "/index?release="++R }} || R <- Builds ]
+    end,
+
 %    create_release() ++
-    [ #h1{ body = "Continuous Integration"}, #h2{ body = "Stages" },
-      [ #p{ body = #link { body = R, url= "/index?release="++R }} || R <- Builds ] ,
-      #br{},#br{},#br{},
-      #span{ body = "&copy; Synrc Research Center" }
+    [
+        #h1{ body = "Continuous Integration"},
+        #h2{ body = "Releases" },
+        BuildList
     ].
 
 create_release() ->
@@ -53,3 +77,8 @@ event(stage) ->
     wf:update(stage,
     #dropdown { options = [#option{ label= "Simple",value= "simple"},#option{ label= "Rich Web",value="richweb"}]}
     ).
+
+numeric_compare(S1, S2) ->
+    {I1, _} = string:to_integer(S1),
+    {I2, _} = string:to_integer(S2),
+    I1 < I2.
