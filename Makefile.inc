@@ -50,11 +50,7 @@ generate:
 	cd $(RELEASE_ROOT); rebar -f $@
 
 clean-release:
-	rm -rf $(NODE_ROOT)/lib
-	rm -rf $(NODE_ROOT)/data
-	rm -rf $(NODE_ROOT)/log
-	rm -rf $(NODE_ROOT)/releases
-
+	rm -rf $(NODE_ROOT)
 
 # usage: link_app $appname $libpath $subdir
 link_app = rm -rf $2/$3; ln -sf $(CURDIR)/$(filter %/$1,$(SRC_APP_DIRS))/$3 $2/$3;
@@ -70,6 +66,17 @@ release-links:
 release: clean-release generate release-links
 
 endif
+
+print:
+	@echo "RELEASE: $(RELEASE)"
+	@echo "NODE: $(NODE)"
+	@echo "REL_ROOT: $(REL_ROOT)"
+	@echo "NODE_ROOT: $(NODE_ROOT)"
+	@echo "NODE_BIN: $(NODE_BIN)"
+	@echo "SRC_APP_DIRS: $(SRC_APP_DIRS)"
+	@echo "FOUND_APPS: $(FOUND_APPS)"
+	@echo "REL_APPS: $(REL_APPS)"
+	@echo "APPS: $(APPS)"
 
 
 .PHONY: start stop attach clean

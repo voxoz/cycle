@@ -1,6 +1,5 @@
 -module(builder).
 -compile(export_all).
--include("releases.hrl").
 
 builder() ->
     receive 

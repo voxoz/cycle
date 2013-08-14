@@ -1,6 +1,6 @@
-RELEASE :=	release_manager
-NODE :=		release
-REL_ROOT :=	rels
+RELEASE :=	rel
+NODE :=		node
+REL_ROOT :=	.
 
 N2O :=		deps/n2o/priv/static
 N2O_TARGET :=	apps/releaseman/priv/static/nitrogen
