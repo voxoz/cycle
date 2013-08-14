@@ -21,7 +21,7 @@ init([]) ->
         ]}
     ]),
 
-    releases_rest:init(),
+    release:init(),
 
     {ok, _} = cowboy:start_http(http, 10, [{port, config:value(port)}],[{env, [{dispatch, Dispatch}]}]),
 

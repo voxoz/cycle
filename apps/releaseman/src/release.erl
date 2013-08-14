@@ -1,4 +1,4 @@
--module(releases_rest).
+-module(release).
 -compile(export_all).
 -include("releases.hrl").
 
