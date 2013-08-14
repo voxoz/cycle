@@ -10,18 +10,19 @@ handle(Req, State) ->
     {Params,NewReq} = cowboy_req:path(Req),
     Path = lists:reverse(string:tokens(binary_to_list(Params),"/")),
     [Repo,User|Rest] = Path,
-    Allowed = lists:member(User,["5HT","doxtop","voxoz","synrc","spawnproc"]),
+    Allowed = lists:member(User, config:value(allowed_users)),
     ResponseReq = case Allowed of
         true ->
             case global:whereis_name("builder") of
                 undefined -> spawn(fun() -> global:register_name("builder",self()), builder:builder() end);
                 Pid -> global:send("builder",{build,Repo,User}) end,
-            HTML = wf:to_binary(["<h1>202 Project Started to Build</h1><a href=\"/index?release=",User,"-",Repo,"\">",User,"-",Repo,"</a>"]),
-            {ok, Req3} = cowboy_req:reply(202, [], HTML, NewReq),
+
+            Output = wf:to_binary(["build started: /index?release=",User,"-",Repo,""]),
+            {ok, Req3} = cowboy_req:reply(202, [], Output, NewReq),
             Req3;
         false ->
-            NA = wf:to_binary(["<h1>404 User not allowed</h1>"]),
-            {ok, Req4} = cowboy_req:reply(404, [], NA, NewReq),
+            NA = wf:to_binary(["user not allowed"]),
+            {ok, Req4} = cowboy_req:reply(403, [], NA, NewReq),
             Req4 end,
     {ok, ResponseReq, State}.
 
