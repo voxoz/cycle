@@ -1,6 +1,6 @@
 -module(releases_rest).
 -compile(export_all).
--include("builder/include/releases.hrl").
+-include("releases.hrl").
 
 % PUBLIC REST INTERFACE FOR GLOBAL SERVER
 
