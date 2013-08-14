@@ -27,25 +27,34 @@ build(Repo,User) ->
     os:cmd(["mkdir -p ",Docroot]),
     os:cmd(["mkdir -p \"",Buildlogs,"/",LogFolder,"\""]),
     Ctx = {User,Repo,Docroot,Buildlogs,LogFolder},
-    case os:cmd(["ls ",Docroot]) of
-        [] -> os:cmd(["git clone git://github.com/",User,"/",Repo,".git ",Docroot]);
-        _ -> ok
+
+    case file:list_dir(Docroot) of
+        T when T == {ok, []} orelse T == {error, enoent} ->
+            os:cmd(["git clone git://github.com/",User,"/",Repo,".git ",Docroot]);
+        _ ->
+            ok
     end,
 
-    Script = [
-        "git pull",
-        "rebar delete-deps",
-        "rebar get-deps",
-        "rebar compile",
-        "./stop.sh",
-        "./nitrogen_static.sh",
-        "./release.sh",
-        "./release_sync.sh",
-        "./styles.sh",
-        "./javascript.sh",
-        "./start.sh",
-        "rebar ling-build-image"
-    ],
+    Script = case file:read_file_info([Docroot, "/Makefile"]) of
+        {ok, _} -> [
+                "git pull",
+                "make"
+            ];
+        {error, _} -> [
+                "git pull",
+                "rebar delete-deps",
+                "rebar get-deps",
+                "rebar compile",
+                "./stop.sh",
+                "./nitrogen_static.sh",
+                "./release.sh",
+                "./release_sync.sh",
+                "./styles.sh",
+                "./javascript.sh",
+                "./start.sh",
+                "rebar ling-build-image"
+            ]
+    end,
 
     [ cmd(Ctx,No,lists:nth(No,Script)) || No <- lists:seq(1,length(Script)) ].
 
