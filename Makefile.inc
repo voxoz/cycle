@@ -27,6 +27,10 @@ REL_APPS := $(shell erl -noshell -eval '\
 
 APPS := $(filter $(REL_APPS),$(FOUND_APPS))
 
+# this sets ROOTDIR that points to smth like /usr/lib/erlang
+# can also use code:lib_dir/0 but spawning beam too often is slow
+$(eval $(shell grep '^ROOTDIR' `which erl`))
+
 default: release
 
 deps: get-deps
@@ -62,6 +66,8 @@ release-links:
 		$(call link_app,$(app),$(lastword $(wildcard $(NODE_ROOT)/lib/$(app)-*)),ebin)\
 		$(call link_app,$(app),$(lastword $(wildcard $(NODE_ROOT)/lib/$(app)-*)),include)\
 		$(call link_app,$(app),$(lastword $(wildcard $(NODE_ROOT)/lib/$(app)-*)),priv))
+	@echo linking erl_interface
+	ln -sf $(ROOTDIR)/lib/erl_interface-* $(NODE_ROOT)/lib/
 
 release: clean-release generate release-links
 
@@ -77,6 +83,7 @@ print:
 	@echo "FOUND_APPS: $(FOUND_APPS)"
 	@echo "REL_APPS: $(REL_APPS)"
 	@echo "APPS: $(APPS)"
+	@echo "ROOTDIR: $(ROOTDIR)"
 
 
 .PHONY: start stop attach clean
