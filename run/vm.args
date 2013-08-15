@@ -1,5 +1,5 @@
--name release_server@127.0.0.1
--setcookie node_runner
+-sname rel
+-setcookie rel
 +K true
 +A 5
 -env ERL_MAX_PORTS 4096

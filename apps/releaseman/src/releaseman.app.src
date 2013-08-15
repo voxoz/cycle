@@ -3,7 +3,7 @@
   {description, "LXC VXZ Release Manager"},
   {vsn, "1"},
   {registered, []},
-  {applications, [kernel,stdlib,crypto,public_key,ssl,ranch,cowboy,inets,builder]},
+  {applications, [kernel,stdlib,crypto,public_key,ssl,ranch,cowboy,inets,builder,n2o]},
   {mod, { releaseman_app, []}},
   {env, []}
  ]}.

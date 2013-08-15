@@ -2,7 +2,6 @@ ebin/
 *.dets
 *.gz
 *.dump
-application.config
 deps/
-rel/node/
 vmling
+.applist

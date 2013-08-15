@@ -1,0 +1,23 @@
+empty :=
+space := $(empty) $(empty)
+
+REBAR ?= $(or $(shell which rebar 2>/dev/null),./rebar)
+
+SRC_APP_DIR_ROOTS ?= apps deps
+ERL_LIBS := $(subst $(space),:,$(SRC_APP_DIR_ROOTS))
+
+APPS ?= lager sync releaseman
+ERL_ARGS ?= -args_file run/vm.args -config run/sys.config
+
+run: .applist
+	ERL_LIBS=$(ERL_LIBS) erl $(ERL_ARGS) -eval 'lists:map(fun application:ensure_started/1, $(shell cat .applist))'
+
+.applist:
+	./envgen.erl $(APPS) > $@
+
+deps: get-deps
+
+get-deps compile clean:
+	$(REBAR) $@
+
+.PHONY: get-deps compile clean deps run

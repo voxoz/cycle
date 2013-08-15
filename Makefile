@@ -1,11 +1,10 @@
-RELEASE :=	rel
-NODE :=		node
-REL_ROOT :=	.
+APPS := lager sync releaseman
+ERL_ARGS := -args_file run/vm.args -config run/sys.config
 
 N2O :=		deps/n2o/priv/static
 N2O_TARGET :=	apps/releaseman/priv/static/nitrogen
 
-default: release n2o-static
+default: compile n2o-static
 
 n2o-static:
 	rm -rf $(N2O)
@@ -14,4 +13,4 @@ n2o-static:
 	mkdir -p $(shell dirname $(N2O_TARGET))
 	ln -sf ../../../../deps/n2o/priv/static/n2o $(N2O_TARGET)
 
-include Makefile.inc
+include Makefile.run
