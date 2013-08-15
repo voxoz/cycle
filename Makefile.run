@@ -10,7 +10,7 @@ APPS ?= lager sync releaseman
 ERL_ARGS ?= -args_file run/vm.args -config run/sys.config
 
 run: .applist
-	ERL_LIBS=$(ERL_LIBS) erl $(ERL_ARGS) -eval 'lists:map(fun application:ensure_started/1, $(shell cat .applist))'
+	ERL_LIBS=$(ERL_LIBS) erl $(ERL_ARGS) -eval '[application:ensure_started(A, permanent) || A <- $(shell cat .applist)]'
 
 .applist:
 	./envgen.erl $(APPS) > $@
