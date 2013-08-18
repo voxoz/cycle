@@ -73,6 +73,8 @@ create_release() ->
     #checkbox { body="new", postback=stage}, #panel {id=stage},
     #br{} ].
 
+event(init) -> ok;
+
 event(stage) -> 
     wf:update(stage,
     #dropdown { options = [#option{ label= "Simple",value= "simple"},#option{ label= "Rich Web",value="richweb"}]}

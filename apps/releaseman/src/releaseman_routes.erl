@@ -12,5 +12,7 @@ init(State, Ctx) ->
 
 route(<<"/">>) -> {public_index, []};
 route(<<"/index">>) -> {public_index, []};
+route(<<"/ws/">>) -> {public_index, []};
+route(<<"/ws/index">>) -> {public_index, []};
 route(<<"/favicon.ico">>) -> {static_file, []};
 route(_) -> {public_index, []}.
