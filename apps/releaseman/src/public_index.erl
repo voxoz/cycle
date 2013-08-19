@@ -7,47 +7,26 @@
 main() -> [ #dtl{file = "releaseman", app=releaseman, bindings=[{title,title()},{body,body()}]} ].
 title() -> [ <<"RELEASE MANAGER">> ].
 body() ->
-    case {wf:qs(<<"release">>),wf:qs(<<"build">>),wf:qs(<<"log">>)} of
-      {undefined,undefined,undefined} -> releases();
-      {Release,undefined,undefined}   -> builds(binary_to_list(Release));
-      {Release,Build,undefined}       -> steps(binary_to_list(Release),binary_to_list(Build));
-      {Release,Build,Step}            -> log(binary_to_list(Release),binary_to_list(Build),binary_to_list(Step)) end.
+    Ctx = wf_context:context(),
+    lager:error("~p", [wf:path(Ctx#context.req)]),
+    case {wf:qs(<<"release">>),wf:qs(<<"build">>)} of
+      {undefined,undefined} -> releases();
+      {Release,undefined}   -> builds(binary_to_list(Release));
+      {Release,Build}       -> log(binary_to_list(Release),binary_to_list(Build))
+    end.
 
 builds(Release) ->
-    error_logger:info_msg("builds: ~p",[Release]),
     {ok, Builds} = file:list_dir(["buildlogs/",Release]),
 
     [ #h2{ body = "Builds for " ++ Release },
       [ #p{ body = #link { body = B, url= "/index?release="++Release++"&build="++B }} || B <- Builds ]
     ].
 
-steps(Release,Build) ->
-    {ok, Steps} = file:list_dir(["buildlogs/",Release,"/",Build]),
+log(Release,Build) ->
+    N = ["buildlogs/",Release,"/",Build],
+    {ok,Bin} = file:read_file(N),
 
-    [ #h2{ body = "Steps of " ++ Build ++ " build of " ++ Release ++ " release" },
-        #list{ body = [
-                #li{ body=[
-                        #link {
-                            body = S,
-                            url = "/index?release="++Release++"&build="++Build++"&log="++StepFile },
-                        #pre{
-                            body = step(Release, Build, StepFile)
-                        }
-                    ]
-                } || {StepFile, S} <- lists:sort(
-                    fun({_, T1}, {_, T2}) -> numeric_compare(T1, T2) end,
-                    lists:zip(Steps, [base64:decode_to_string(St) || St <- Steps]))
-            ]
-        }
-    ].
-
-step(Release, Build, Step) ->
-    {ok,Bin} = file:read_file(["buildlogs/",Release,"/",Build,"/",Step]),
-    Bin.
-
-log(Release,Build,Step) ->
-    error_logger:info_msg("log: ~p ~p ~p",[Release,Build,Step]),
-    [<<"<pre>">>,step(Release, Build, Step),<<"</pre>">>].
+    [ #h2{body=N}, #pre{body=Bin} ].
 
 releases() ->
     BuildList = case file:list_dir("buildlogs") of

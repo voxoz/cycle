@@ -16,7 +16,7 @@ init([]) ->
             {"/rest/:bucket",            n2o_rest, []}, %% for releases REST interface
             {"/rest/:bucket/:key",       n2o_rest, []},
             {"/rest/:bucket/:key/[...]", n2o_rest, []},
-            {"/github/hook/[...]", github_handler, []},
+            {"/build/[...]", build_handler, []},
             {"/ws/[...]", bullet_handler, [{handler, n2o_bullet}]},
             {'_', n2o_cowboy, []}
         ]}

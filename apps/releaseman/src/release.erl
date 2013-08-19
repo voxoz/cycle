@@ -12,9 +12,14 @@ get(Id) -> ets:lookup(releases,Id).
 delete(Id) -> ets:delete(releases,Id).
 put(R=#release{}) -> ets:insert(releases,R).
 exists(Id) -> ets:member(releases,Id).
-to_html(R=#release{}) -> [<<"<tr><td>">>,coalesce(R#release.id),<<"</td">>,
-                                          <<"<td>">>,coalesce(R#release.user),<<"</td><td>">>,
-                                          <<"<td>">>,coalesce(R#release.repo),<<"</td><td>">>,
-                                                     coalesce(R#release.name),<<"</td></tr>">>].
+to_html(R=#release{}) -> [
+        <<"<tr><td>">>,coalesce(R#release.id),<<"</td">>,
+        <<"<td>">>,coalesce(R#release.user),<<"</td><td>">>,
+        <<"<td>">>,coalesce(R#release.repo),<<"</td><td>">>,
+        coalesce(R#release.name),<<"</td></tr>">>
+    ].
 
-coalesce(Name) -> case Name of undefined -> <<>>; A -> list_to_binary(A) end.
+coalesce(Name) -> case Name of
+        undefined -> <<>>;
+        A -> list_to_binary(A)
+    end.

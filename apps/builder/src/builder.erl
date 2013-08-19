@@ -3,46 +3,49 @@
 
 builder() ->
     receive 
-        {build,Repo,User} -> build(Repo,User)
+        {build,Repo,User} ->
+            build(Repo,User),
+            exit(dead); % XXX
+        _ ->
+            ignore
     end,
     builder().
 
-cmd({User,Repo,Docroot,Buildlogs,LogFolder},No,List) ->
-    Message = os:cmd(["cd ",Docroot," && ",List]),
-    FileName = binary_to_list(base64:encode(lists:flatten([integer_to_list(No)," ",List]))),
-    File = lists:flatten([Buildlogs,"/",LogFolder,"/",FileName]),
-    error_logger:info_msg("Command: ~p",[List]),
-    error_logger:info_msg("Output: ~p",[Message]),
-    file:write_file(File,Message).
-
-create_dir(Docroot) -> os:cmd("mkdir -p \"" ++ Docroot ++ "\"").
+%% @todo convert to OTP
+run_build(Repo, User) ->
+    case global:whereis_name(builder) of
+        undefined ->
+            spawn(fun() ->
+                        yes = global:register_name(builder, self()),
+                        self() ! {build,Repo,User},
+                        builder:builder()
+                end);
+        Pid when is_pid(Pid) ->
+            Pid ! {build,Repo,User}
+    end.
 
 build(Repo,User) ->
     Docroot = "repos/" ++ Repo,
-    Buildlogs = "buildlogs/"++ User ++ "-" ++ Repo,
-    error_logger:info_msg("Hook worker called ~p",[Docroot]),
-    {{Y,M,D},{H,Min,S}} = calendar:universal_time_to_local_time(calendar:now_to_datetime(now())),
-    LogFolder = io_lib:format("~p-~p-~p ~p:~p:~p",[Y,M,D,H,Min,S]),
-    error_logger:info_msg("Mkdir Docroot ~p",[]),
-    os:cmd(["mkdir -p ",Docroot]),
-    os:cmd(["mkdir -p \"",Buildlogs,"/",LogFolder,"\""]),
-    Ctx = {User,Repo,Docroot,Buildlogs,LogFolder},
+    filelib:ensure_dir(Docroot),
+    file:make_dir(Docroot),
 
-    case file:list_dir(Docroot) of
-        T when T == {ok, []} orelse T == {error, enoent} ->
-            os:cmd(["git clone git://github.com/",User,"/",Repo,".git ",Docroot]);
-        _ ->
-            ok
-    end,
+    Logs = ["buildlogs", "/", User, "-", Repo],
+    LogFile = integer_to_list(time_t(now())),
+    LogPath = lists:flatten(Logs ++ ["/", LogFile]),
+    filelib:ensure_dir(LogPath),
+    lager:info("logpath: ~p", [LogPath]),
+
+    sh:run("git clone git://github.com/" ++ User ++ "/" ++ Repo ++ ".git .", LogPath, Docroot),
 
     Script = case file:read_file_info([Docroot, "/Makefile"]) of
         {ok, _} -> [
                 "git pull",
+                "git clean -dxf",
                 "make"
             ];
         {error, _} -> [
                 "git pull",
-                "rebar delete-deps",
+                "git clean -dxf",
                 "rebar get-deps",
                 "rebar compile",
                 "./stop.sh",
@@ -51,10 +54,11 @@ build(Repo,User) ->
                 "./release_sync.sh",
                 "./styles.sh",
                 "./javascript.sh",
-                "./start.sh",
-                "rebar ling-build-image"
+                "./start.sh"
             ]
     end,
 
-    [ cmd(Ctx,No,lists:nth(No,Script)) || No <- lists:seq(1,length(Script)) ].
+    [ sh:run(Cmd, LogPath, Docroot) || Cmd <- Script ].
 
+time_t({Mega, Secs, _Micro}) ->
+    Mega*1000*1000 + Secs.
