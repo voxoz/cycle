@@ -9,15 +9,27 @@ ERL_LIBS := $(subst $(space),:,$(SRC_APP_DIR_ROOTS))
 APPS ?= lager sync releaseman
 ERL_ARGS ?= -args_file run/vm.args -config run/sys.config
 
-run: .applist
+console: .applist
 	ERL_LIBS=$(ERL_LIBS) erl $(ERL_ARGS) -eval '[ok = application:ensure_started(A, permanent) || A <- $(shell cat .applist)]'
 
 .applist:
 	./envgen.erl $(APPS) > $@
+
+RUN_DIR ?= ./run
+LOG_DIR ?= ./log
+
+$(RUN_DIR) $(LOG_DIR):
+	mkdir -p $@
+
+start: $(RUN_DIR) $(LOG_DIR)
+	run_erl -daemon $(RUN_DIR)/ $(LOG_DIR)/ "exec $(MAKE) console"
+
+attach:
+	to_erl $(RUN_DIR)/
 
 deps: get-deps
 
 get-deps compile clean:
 	$(REBAR) $@
 
-.PHONY: get-deps compile clean deps run
+.PHONY: get-deps compile clean deps console start attach
