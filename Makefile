@@ -1,5 +1,5 @@
 APPS := lager sync releaseman
-ERL_ARGS := -sname rel -args_file run/vm.args -config run/sys.config
+ERL_ARGS := -args_file run/vm.args -config run/sys.config
 
 N2O :=		deps/n2o/priv/static
 N2O_TARGET :=	apps/releaseman/priv/static/nitrogen
