@@ -70,14 +70,14 @@ build(CloneUrl, Ref) ->
     sh:run(["git", "clone", "--no-checkout", P, "."], LogPath, Docroot),
     gather_build_info(Docroot, filename:join([Logs, LogFile ++ ".info"])),
 
-    Script = case filelib:is_file(filename:join([Docroot, "Makefile"])) of
-        true -> [
+    Script = case file:read_file_info([Docroot, "/Makefile"]) of
+        {ok, _} -> [
                 "git fetch",
                 "git clean -dxf",
                 ["git", "checkout", Ref],
                 "make"
             ];
-        false -> [
+        {error, _} -> [
                 "git fetch",
                 "git clean -dxf",
                 ["git", "checkout", Ref],
