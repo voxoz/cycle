@@ -27,7 +27,7 @@ run(Command, Args, Log, Cwd) ->
     Self = self(),
     spawn_link(fun() ->
                 {ok, File} = file:open(Log, [append, raw]),
-                file:write(File, [">>>> ", Command, " ", [[A, " "] || A <- Args], "\n"]),
+                file:write(File, [">>> ", ts(), " ", Command, " ", [[A, " "] || A <- Args], "\n"]),
 
                 Port = erlang:open_port({spawn_executable, Command},
                     [stream, stderr_to_stdout, binary, exit_status,
@@ -57,7 +57,7 @@ handle_loop(Parent, File) ->
             file:write(File, Data),
             handle_loop(Parent, File);
         {_Port, {exit_status, Status}} ->
-            file:write(File, [">>>> exit status: ", integer_to_list(Status), "\n"]),
+            file:write(File, [">>> ", ts(), " exit status: ", integer_to_list(Status), "\n"]),
             file:close(File),
             Parent ! {done, Status, undefined};
         _M -> % discard
@@ -65,3 +65,7 @@ handle_loop(Parent, File) ->
     end.
 
 % t() -> dbg:tracer(), dbg:p(self(), m), dbg:p(new, m), run("false", "/tmp/1", "/tmp").
+
+ts() ->
+    Ts = {{_Y,_M,_D},{_H,_Min,_S}} = calendar:now_to_datetime(now()),
+    io_lib:format("~p", [Ts]).
