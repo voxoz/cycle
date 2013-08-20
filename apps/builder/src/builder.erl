@@ -47,11 +47,29 @@ gather_build_info(Cwd, Target) ->
             ]],
     write_term(Target, Terms).
 
+build_log(Release, Build) ->
+    N = ["buildlogs/",Release,"/",Build ++ ".log"],
+    {ok, Bin} = file:read_file(N),
+    Bin.
+
 build_info(Release, Build) ->
     P = filename:join(["buildlogs", Release, Build ++ ".info"]),
     error_logger:info_msg("build_info: ~p", [P]),
     {ok, [T]} = file:consult(P),
     T.
+
+all_builds(Release) ->
+    Builds0 = filelib:wildcard("buildlogs/" ++ Release ++ "/*.log"),
+    Builds = [begin [_, Release, Build] = filename:split(B), hd(string:tokens(Build, ".")) end || B <- Builds0],
+    Builds.
+
+all_releases() ->
+    case file:list_dir("buildlogs") of
+        {error, E} ->
+            error_logger:error_msg("buildlogs: ~p", [E]),
+            E;
+        {ok, Builds} -> Builds
+    end.
 
 build(CloneUrl, Ref) ->
     P = lists:flatten(CloneUrl),
