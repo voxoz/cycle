@@ -34,7 +34,10 @@ log(Release,Build) ->
     ].
 
 releases() ->
-    New = #p{body=["create new:", #pre{body=["curl -X POST ", addr(), "/build/proger/erlkit"]}]},
+    New = #p{body=["create new:", #pre{body=[
+                    "curl -X POST ", addr(), "/build/proger/erlkit", "\n",
+                    "curl -X POST -d 'github=5HT/n2o&ref=action-redirect-fix' ", addr(), "/build"
+                ]}]},
 
     BuildList = case builder:all_releases() of
         [] ->
