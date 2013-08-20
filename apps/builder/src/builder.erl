@@ -41,7 +41,7 @@ repo_path(P) -> base64:encode_to_string(P).
 identify_repo(P) -> base64:decode_to_string(P).
 
 gather_build_info(Cwd, Target) ->
-    Terms = [{Name, begin {ok, _, T} = sh:run(Command, binary, Cwd), iolist_to_binary(binary:split(T, <<"\n">>, [trim])) end} || {Name, Command} <- [
+    Terms = [{Name, run_oneliner(Command, Cwd)} || {Name, Command} <- [
                 {remote_url, "git config remote.origin.url"},
                 {rev, "git log --format='%H' -1"}
             ]],
@@ -100,3 +100,7 @@ time_t({Mega, Secs, _Micro}) ->
 
 sha1(List) ->
     lists:flatten(io_lib:format("~40.16.0b", [begin <<MM:160>> = crypto:hash(sha, List), MM end])).
+
+run_oneliner(Command, Cwd) ->
+    {ok, _, T} = sh:run(Command, binary, Cwd),
+    iolist_to_binary(binary:split(T, <<"\n">>, [trim])).
