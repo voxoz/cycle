@@ -3,8 +3,8 @@
 
 builder() ->
     receive 
-        {build,Repo,User} ->
-            build(Repo,User),
+        {build, Args} ->
+            apply(?MODULE, build, Args),
             exit(dead); % XXX
         _ ->
             ignore
@@ -12,40 +12,75 @@ builder() ->
     builder().
 
 %% @todo convert to OTP
-run_build(Repo, User) ->
+run_build(Opts) ->
+    Args = buildargs(Opts),
     case global:whereis_name(builder) of
         undefined ->
             spawn(fun() ->
                         yes = global:register_name(builder, self()),
-                        self() ! {build,Repo,User},
+                        self() ! {build, Args},
                         builder:builder()
                 end);
         Pid when is_pid(Pid) ->
-            Pid ! {build,Repo,User}
+            Pid ! {build, Args}
     end.
 
-build(Repo,User) ->
-    Docroot = "repos/" ++ Repo,
+buildargs(Opts) ->
+    error_logger:info_msg("opts: ~p", [Opts]),
+    GH = proplists:get_value(<<"github">>, Opts),
+    Ref = proplists:get_value(<<"ref">>, Opts, <<"HEAD">>),
+    [["git://github.com/", binary_to_list(GH), ".git"], binary_to_list(Ref)].
+
+write_term(Dir, Name, Term) ->
+    write_term(filename:join(filename:absname(Dir), Name), Term).
+write_term(Path, Term) ->
+    filelib:ensure_dir(Path),
+    ok = file:write_file(Path, io_lib:format("~p.\n", [Term])).
+
+repo_path(P) -> base64:encode_to_string(P).
+identify_repo(P) -> base64:decode_to_string(P).
+
+gather_build_info(Cwd, Target) ->
+    Terms = [{Name, begin {ok, _, T} = sh:run(Command, binary, Cwd), iolist_to_binary(binary:split(T, <<"\n">>, [trim])) end} || {Name, Command} <- [
+                {remote_url, "git config remote.origin.url"},
+                {rev, "git log --format='%H' -1"}
+            ]],
+    write_term(Target, Terms).
+
+build_info(Release, Build) ->
+    P = filename:join(["buildlogs", Release, Build ++ ".info"]),
+    error_logger:info_msg("build_info: ~p", [P]),
+    {ok, [T]} = file:consult(P),
+    T.
+
+build(CloneUrl, Ref) ->
+    P = lists:flatten(CloneUrl),
+    Repo = repo_path(P),
+
+    Docroot = filename:join(["repos", Repo]),
     filelib:ensure_dir(Docroot),
     file:make_dir(Docroot),
 
-    Logs = ["buildlogs", "/", User, "-", Repo],
+    Logs = filename:join(["buildlogs", Repo]),
     LogFile = integer_to_list(time_t(now())),
-    LogPath = lists:flatten(Logs ++ ["/", LogFile]),
+    LogPath = filename:join([Logs, LogFile ++ ".log"]),
     filelib:ensure_dir(LogPath),
-    lager:info("logpath: ~p", [LogPath]),
+    error_logger:info_msg("logpath: ~p", [LogPath]),
 
-    sh:run("git clone git://github.com/" ++ User ++ "/" ++ Repo ++ ".git .", LogPath, Docroot),
+    sh:run(["git", "clone", "--no-checkout", P, "."], LogPath, Docroot),
+    gather_build_info(Docroot, filename:join([Logs, LogFile ++ ".info"])),
 
-    Script = case file:read_file_info([Docroot, "/Makefile"]) of
-        {ok, _} -> [
-                "git pull",
+    Script = case filelib:is_file(filename:join([Docroot, "Makefile"])) of
+        true -> [
+                "git fetch",
                 "git clean -dxf",
+                ["git", "checkout", Ref],
                 "make"
             ];
-        {error, _} -> [
-                "git pull",
+        false -> [
+                "git fetch",
                 "git clean -dxf",
+                ["git", "checkout", Ref],
                 "rebar get-deps",
                 "rebar compile",
                 "./stop.sh",
@@ -62,3 +97,6 @@ build(Repo,User) ->
 
 time_t({Mega, Secs, _Micro}) ->
     Mega*1000*1000 + Secs.
+
+sha1(List) ->
+    lists:flatten(io_lib:format("~40.16.0b", [begin <<MM:160>> = crypto:hash(sha, List), MM end])).
