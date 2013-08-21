@@ -16,11 +16,20 @@ list_group(Items) ->
     #ul{class= <<"list-group">>,
         body= [#li{class= <<"list-group-item">>, body=Item} || Item <- Items]}.
 
-link_list_group(Items) ->
-    #'div'{ class= <<"list-group">>, body= [ #link {
-                class= <<"list-group-item">>,
-                body= Body,
-                url= Url
-            } || {Url, Body} <- Items ]
+link_list_item({Url, #link{} = Body}) ->
+    Body#link{class= <<"list-group-item">>, url=Url};
+link_list_item({Url, Body}) ->
+    #link {
+        class= <<"list-group-item">>,
+        body= Body,
+        url= Url
+    };
+link_list_item({Url, Header, Body}) ->
+    #'div' {
+        class= <<"list-group-item">>,
+        body= [#h4{class= <<"list-group-item-heading">>, body= #link{body=Header, url=Url}},
+            #p{class= <<"list-group-item-text">>, body= Body}]
     }.
 
+link_list_group(Items) ->
+    #'div'{ class= <<"list-group">>, body= [link_list_item(Item) || Item <- Items ]}.

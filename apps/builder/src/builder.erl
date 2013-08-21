@@ -18,6 +18,7 @@ run_build(Opts) ->
         undefined ->
             spawn(fun() ->
                         yes = global:register_name(builder, self()),
+                        ets:new(builder_stat, [set, named_table]),
                         self() ! {build, Args},
                         builder:builder()
                 end);
@@ -85,6 +86,8 @@ build(CloneUrl, Ref) ->
     filelib:ensure_dir(LogPath),
     error_logger:info_msg("logpath: ~p", [LogPath]),
 
+    ets:insert(builder_stat, {current, {Repo, LogFile}}),
+
     sh:run(["git", "clone", "--no-checkout", P, "."], LogPath, Docroot),
     gather_build_info(Docroot, filename:join([Logs, LogFile ++ ".info"])),
 
@@ -111,7 +114,9 @@ build(CloneUrl, Ref) ->
             ]
     end,
 
-    [ sh:run(Cmd, LogPath, Docroot) || Cmd <- Script ].
+    R = [ sh:run(Cmd, LogPath, Docroot) || Cmd <- Script ],
+    ets:delete(builder_stat, current),    
+    R.
 
 time_t({Mega, Secs, _Micro}) ->
     Mega*1000*1000 + Secs.
