@@ -42,7 +42,7 @@ repo_path(P) -> base64:encode_to_string(P).
 identify_repo(P) -> base64:decode_to_string(P).
 
 gather_build_info(Cwd, Target) ->
-    Terms = [{Name, run_oneliner(Command, Cwd)} || {Name, Command} <- [
+    Terms = [{Name, begin {_, _, B} = erlsh:oneliner(Command, Cwd), B end} || {Name, Command} <- [
                 {remote_url, "git config remote.origin.url"},
                 {rev, "git log --format='%H' -1"}
             ]],
@@ -88,7 +88,7 @@ build(CloneUrl, Ref) ->
 
     ets:insert(builder_stat, {current, {Repo, LogFile}}),
 
-    sh:run(["git", "clone", "--no-checkout", P, "."], LogPath, Docroot),
+    erlsh:run(["git", "clone", "--no-checkout", P, "."], LogPath, Docroot),
     gather_build_info(Docroot, filename:join([Logs, LogFile ++ ".info"])),
 
     Script = case file:read_file_info([Docroot, "/Makefile"]) of
@@ -114,7 +114,7 @@ build(CloneUrl, Ref) ->
             ]
     end,
 
-    R = [ sh:run(Cmd, LogPath, Docroot) || Cmd <- Script ],
+    R = [ erlsh:run(Cmd, LogPath, Docroot) || Cmd <- Script ],
     ets:delete(builder_stat, current),    
     R.
 
@@ -123,7 +123,3 @@ time_t({Mega, Secs, _Micro}) ->
 
 sha1(List) ->
     lists:flatten(io_lib:format("~40.16.0b", [begin <<MM:160>> = crypto:hash(sha, List), MM end])).
-
-run_oneliner(Command, Cwd) ->
-    {ok, _, T} = sh:run(Command, binary, Cwd),
-    iolist_to_binary(binary:split(T, <<"\n">>, [trim])).
