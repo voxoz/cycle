@@ -4,7 +4,7 @@
 -include_lib("kernel/include/file.hrl").
 
 main() -> [ #dtl{file = "releaseman", app=releaseman, bindings=[{title,title()},{body,body()},{navcollapse, current_status()}]} ].
-title() -> [ <<"vxzbuild">> ].
+title() -> [ <<"GIR">> ].
 body() ->
     case lists:reverse(pathlist()) of
         [Build, Release, <<"index">>] ->
