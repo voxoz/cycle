@@ -38,8 +38,8 @@ write_term(Path, Term) ->
     filelib:ensure_dir(Path),
     ok = file:write_file(Path, io_lib:format("~p.\n", [Term])).
 
-repo_path(P) -> erlsh_path:escape(P).
-identify_repo(P) -> erlsh_path:unescape(P).
+repo_path(P) -> base64:encode_to_string(P).
+identify_repo(P) -> base64:decode_to_string(P).
 
 gather_build_info(Cwd, Target) ->
     Terms = [{Name, begin {_, _, B} = erlsh:oneliner(Command, Cwd), B end} || {Name, Command} <- [
