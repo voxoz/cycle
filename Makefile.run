@@ -6,7 +6,7 @@ REBAR ?= $(or $(shell which rebar 2>/dev/null),./rebar)
 SRC_APP_DIR_ROOTS ?= apps deps
 ERL_LIBS := $(subst $(space),:,$(SRC_APP_DIR_ROOTS))
 
-APPS ?= lager sync releaseman
+APPS ?= lager releaseman
 ERL_ARGS ?= -args_file run/vm.args -config run/sys.config
 
 console: .applist
