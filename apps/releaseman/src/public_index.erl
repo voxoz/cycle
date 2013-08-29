@@ -82,12 +82,15 @@ parse_uri(Url) ->
 revision_url(BuildInfo) ->
     Url = proplists:get_value(remote_url, BuildInfo),
     Rev = proplists:get_value(rev, BuildInfo),
-    {ok, {_Scheme, _UserInfo, Host, _Port, Path, _Query}} = parse_uri(Url),
-    case Host of
-        "github.com" ->
-            P1 = re:replace(Path, ".git$", "", [{return, binary}]),
-            [#link{body= <<"commit ", Rev/binary>>, url= <<"https://github.com", P1/binary, "/commit/", Rev/binary>>}];
-        _ -> [<<"commit ", Rev/binary>>]
+    case parse_uri(Url) of
+        {ok, {_Scheme, _UserInfo, Host, _Port, Path, _Query}} ->
+            case Host of
+                "github.com" ->
+                    P1 = re:replace(Path, ".git$", "", [{return, binary}]),
+                    [#link{body= <<"commit ", Rev/binary>>, url= <<"https://github.com", P1/binary, "/commit/", Rev/binary>>}];
+                _ -> [<<"commit ", Rev/binary>>]
+            end;
+        _ -> []
     end.
 
 release_link(Release) ->

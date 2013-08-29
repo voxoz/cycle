@@ -38,13 +38,13 @@ write_term(Path, Term) ->
     filelib:ensure_dir(Path),
     ok = file:write_file(Path, io_lib:format("~p.\n", [Term])).
 
-repo_path(P) -> base64:encode_to_string(P).
-identify_repo(P) -> base64:decode_to_string(P).
+repo_path(P) -> erlsh_path:escape(P).
+identify_repo(P) -> erlsh_path:unescape(P).
 
 gather_build_info(Cwd, Target) ->
     Terms = [{Name, begin {_, _, B} = erlsh:oneliner(Command, Cwd), B end} || {Name, Command} <- [
-                {remote_url, "git config remote.origin.url"},
-                {rev, "git log --format='%H' -1"}
+                {remote_url, "test -d .git && git config remote.origin.url"},
+                {rev, "test -d .git && git log --format='%H' -1"}
             ]],
     write_term(Target, Terms).
 
@@ -88,6 +88,7 @@ build(CloneUrl, Ref) ->
 
     ets:insert(builder_stat, {current, {Repo, LogFile}}),
 
+    gather_build_info(Docroot, filename:join([Logs, LogFile ++ ".info"])), % git clone may be slow, and we need smth already
     erlsh:run(["git", "clone", "--no-checkout", P, "."], LogPath, Docroot),
     gather_build_info(Docroot, filename:join([Logs, LogFile ++ ".info"])),
 
