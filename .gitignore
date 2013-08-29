@@ -6,3 +6,5 @@ deps/
 vmling
 .applist
 log/
+buildlogs/
+repos/
