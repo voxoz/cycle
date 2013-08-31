@@ -33,11 +33,19 @@ current_status() ->
 
 builds(Release) ->
     [ #h2{ body = ["builds for ", element(2, release_link(Release))] },
-        n2o_bootstrap:link_list_group([
+        n2o_bootstrap:link_list_group([ begin
+            Timestamp = list_to_integer(B),
+      {Mega, Sec, Micro} = {Timestamp div 1000000, 
+                            Timestamp rem 1000000,
+                            Timestamp rem 1000000},
+
+                 {{Y,M,D},{H,Mi,S}} = calendar:now_to_local_time({Mega,Sec,Micro}),
+
+                Time = io_lib:format("~p/~p/~p ~p:~p:~p",[Y,M,D,H,Mi,S]),
                 {"/index/"++Release++"/"++B,
-                    "build at " ++ B,
+                    "build at " ++ Time,
                     revision_url(builder:build_info(Release, B))}
-                || B <- builder:all_builds(Release) ])
+                end || B <- builder:all_builds(Release) ])
     ].
 
 log(Release,Build) ->
