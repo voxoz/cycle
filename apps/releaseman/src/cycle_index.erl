@@ -17,41 +17,32 @@ body() ->
 builds(Release) ->
     wf:info("builds: ~p",[Release]),
     Builds = string:tokens(os:cmd(["ls -1 buildlogs/",Release]),"\n"),
-    [ #h2{ body = "Builds for " ++ Release },
+    [ release(Release), #br{},
       [ #p{ body = #link { body = B, url= "/index?release="++Release++"&build="++B }} || B <- Builds ]
     ].
 
 steps(Release,Build) ->
     wf:info("steps: ~p ~p",[Release,Build]),
     Steps = string:tokens(os:cmd(["ls -1 \"buildlogs/",Release,"/",Build,"\""]),"\n"),
-    [ #h2{ body = "Steps for " ++ Build ++ " build of " ++ Release ++ " release" },
-      [ #p{ body = #link { body = base64:decode(wf:to_list(S)),
+    [ release(Release), build(Build), #br{},
+      [ #p{ body = #link { body = base64:decode(wf:to_list(S)), class=[status(S)],
             url= "/index?release="++Release++"&build="++Build++"&log="++http_uri:encode(S) }}
         || S <- lists:sort(Steps) ] ].
+
 
 log(Release,Build,Step) ->
     wf:info("log: ~p ~p ~p",[Release,Build,Step]),
     {ok,Bin} = file:read_file(["buildlogs/",Release,"/",Build,"/",Step]),
-    [<<"<pre>">>,Bin,<<"</pre>">>].
+    [ release(Release), build(Build), step(Step), #br{}, <<"<pre>">>,Bin,<<"</pre>">>].
+
+release(Release) -> #h1{body= Release ++ " release"}.
+build(Build) -> #h2{ body = "Steps for " ++ Build ++ " build"  }.
+step(Step) -> #h3{body = "Step " ++ wf:to_list(base64:decode(Step))}.
+status(Step) -> Tokens = lists:reverse(string:tokens(wf:to_list(base64:decode(Step))," ")),
+    [Code|_] = Tokens, wf:info("Code: ~p",[Code]), case Code of "0" -> "green"; _ -> "red" end.
 
 releases() ->
     Builds = string:tokens(os:cmd(["ls -1 buildlogs"]),"\n"),
-%    create_release() ++
-    [ #h1{ body = "Continuous Integration"}, #h2{ body = "Stages" },
-      [ #p{ body = #link { body = R, url= "/index?release="++R }} || R <- Builds ] ,
-      #br{},#br{},#br{},
-      #span{ body = "&copy; Synrc Research Center" }
+    [ #h1{ body = "Continuous Integration Cycle"}, #h2{ body = "Stages" },
+      [ #p{ body = #link { body = R, url= "/index?release="++R }} || R <- Builds ]
     ].
-
-create_release() ->
-    [ #h2{ body = "Create Release" },
-    #textbox{ },
-    #dropdown { options = [#option{ label= "Simple",value= "simple"},#option{ label= "Rich Web",value="richweb"}]},
-    #button{ body = "Create", postback=create_release }, #br{},
-    #checkbox { body="new", postback=stage}, #panel {id=stage},
-    #br{} ].
-
-event(stage) -> 
-    wf:update(stage,
-    #dropdown { options = [#option{ label= "Simple",value= "simple"},#option{ label= "Rich Web",value="richweb"}]}
-    ).

@@ -1,0 +1,90 @@
+A { font-weight: bold; color: blue; padding: 10 10 10 10; margin: 0 -10 0 -10; }
+A:hover { color: darkblue; }
+/* A:hover { color: #0033cc; background-color: white; } */
+
+body { font-size: 18pt; padding: 0; margin: 0; font-family: "Nokia Pure Text"; background-color: #f2f2f2;} 
+TD { margin-top: 8px; margin-bottom: 0px; }
+H1 { font-size:28pt; font-weight: bold; margin-top:20px; margin-bottom:0px; margin-right:6px; margin-left:0px; padding-bottom:10px; }
+H2 { font-size:24pt; font-weight: bold; margin-top:20px; margin-bottom:0px; margin-right:6px; margin-left:0px; padding-bottom:10px; }
+H3 { font-size:22pt; font-weight: bold; margin-top:36px; margin-bottom:20px; margin-right:6px; margin-left:0px; } 
+H4 { font-size:20pt; font-weight: normal; margin-top:0px; margin-bottom:0px; margin-right:0px; } 
+H5 { font-size:18pt; font-weight: normal; padding-top:0px;margin-top:0px; margin-bottom:20px; margin-left:0px; } 
+P { font-size:18pt; padding-top:10px;margin-top:0px;padding-right:10px;padding-left:10px;  }
+LI { font-size:14pt; }
+input { font-size:18pt; }
+
+.section { margin-left: 12px; }
+.subsection { margin-left: 8px; }
+.block > .section { margin-left: 8px; }
+.verywidecol > .section { margin-left: 8px; }
+h2.section { margin-left: 8px; }
+h2 { margin-left: 0px; }
+.red { color: red }
+.green { color: green}
+.logo_font { font-family: "Palatino Linotype"; margin-bottom: 0px; line-height: 60%; }
+.menu { font-family: "Nokia Pure Text"; font-size:18pt; color: red; margin-left:5px; margin-right:5px; }
+.menu:hover { font-size:18pt; color: red; margin-left:5px; margin-right:5px; }
+.block { height: 400px; width:400px; background-color: transparent; vertical-align: top; display: inline-block; text-align: left; }
+.wrapper     { max-width: 1200px; margin: 0 auto; text-align:center; }
+.article     { margin: 0 auto; text-align: center;}
+.articlecol  { max-width: 850px; min-width: 850px; padding-rigt: 20px; text-align: left; display: inline-block; }
+.verywidecol { max-width: 800px; margin-left: auto; margin-right: auto; text-align: normal; }
+.paper { background-color: #fAfAfA; margin-top: 10px;}
+.white { background-color: white; margin-bottom: 10px; }
+blockquote { background-color: #fAfAfA; padding: 20px 20px 20px 20px;}
+.selectedwrapper { 
+    padding-bottom: 10px; overflow: hidden; 
+    background: no-repeat url(http://s.ytimg.com/yt/imgbin/www-refreshbg-vflC3wnbM.png) 0 0;
+    background-color: #EBEBEB;
+    background-repeat: repeat; }
+.selectedwrapperlight { 
+    padding-bottom: 10px; 
+    background-color: #fafafa;
+    background-repeat: repeat; }
+.nonselectedwrapper { width: max-width; margin-left: auto; margin-right:auto; overflow: hidden; }
+.widecol    { width: 40%; float: left; padding: 10px; }
+.smallcol   { width: 200px; padding: 50 0; text-align: left; display: inline-block; vertical-align: top;}
+.toc   { font-size: 16pt; width: 200px; text-align: left; padding-rigt: 20px; margin-left: 20px; display: inline-block; vertical-align: top;}
+.last { margin-right: 0; }
+.clear { clear: both; }
+
+* {
+  -webkit-box-sizing: border-box;
+     -moz-box-sizing: border-box;
+      -ms-box-sizing: border-box;
+          box-sizing: border-box;
+}
+
+@font-face {
+    font-family: "Nokia Pure Text";
+        src: url("http://synrc.com/fonts/nokiapuretextlight-webfont.eot?v=3"); /* IE9 */
+        src: url("http://synrc.com/fonts/nokiapuretextlight-webfont.eot?v=3") format("eot"), /* IE6-IE8 */
+             url("http://synrc.com/fonts/nokiapuretextlight-webfont.woff?v=3") format("truetype"), /* Mordern browsers */
+             url("http://synrc.com/fonts/nokiapuretextlight-webfont.ttf?v=3") format("truetype"); /* Safari, Android, iOS */
+    font-weight: 200;
+    font-style: normal;
+}
+
+.fork-me {
+  position: absolute;
+  top: 0;
+  right: 0;
+  border: 0;
+}
+
+code, div.lstlisting { font-size:14pt; margin: 0px 0px 30px -10px; 
+                        padding: 15px 30px 20px 0px; font-family: monospace; 
+                        white-space: pre; background-color: white; display: inline-block;
+                         border-left:20px solid #afafaf; }
+code, div.lstlisting .keyword              { font-weight: bold }
+code, div.lstlisting .string, code .regexp { color: green }
+code, div.lstlisting .class { color: darkblue }
+code, div.lstlisting .record { color: purple }
+code, div.lstlisting .special { color: blue }
+code, div.lstlisting .number               { color: pink }
+code, div.lstlisting .comment              { color: grey }
+
+p br:nth-child(1) {display: none;}
+
+#dsq-content #disqus_thread #dsq-comments .dsq-comment-message  { font-size: 26px; font-family: "Nokia Pure Text"; }
+.post-content { font-size: 26px; font-family: "Nokia Pure Text"; }

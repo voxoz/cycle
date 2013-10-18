@@ -65,7 +65,7 @@ build(Repo,User) ->
     case os:cmd(["ls ",Docroot]) of
         [] -> os:cmd(["git clone git://github.com/",User,"/",Repo,".git ",Docroot]);
         _ -> ok end,
-    Script = [  "./update.sh","./compile.sh", "./stop.sh",
+    Script = [  "./stop.sh","./update.sh","./compile.sh",
                 "./nitrogen_static.sh","./release.sh","./release_sync.sh",
                 "./styles.sh","./javascript.sh","./start.sh"],
     [ cmd(Ctx,No,lists:nth(No,Script)) || No <- lists:seq(1,length(Script)) ].
