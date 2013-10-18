@@ -13,17 +13,15 @@ init([]) ->
         [{'_', [
             {"/static/[...]", cowboy_static, [{directory, {priv_dir, releaseman, [<<"static">>]}},
                                                 {mimetypes, {fun mimetypes:path_to_mimes/2, default}}]},
-            {"/rest/:bucket",            n2o_rest, []}, %% for releases REST interface
-            {"/rest/:bucket/:key",       n2o_rest, []},
-            {"/rest/:bucket/:key/[...]", n2o_rest, []},
-            {"/build/[...]", build_handler, []},
-            {"/ws/[...]", bullet_handler, [{handler, n2o_bullet}]},
+            {"/github/hook/[...]", cycle_handler, []},
             {'_', n2o_cowboy, []}
         ]}
     ]),
 
-    release:init(),
+    os:cmd("install -d buildlogs"),
 
-    {ok, _} = cowboy:start_http(http, 10, [{port, config:value(port)}],[{env, [{dispatch, Dispatch}]}]),
+    spawn(fun() -> wf:reg(builder), cycle_handler:loop([]) end),
+
+    {ok, _} = cowboy:start_http(http, 10, [{port, 8989}],[{env, [{dispatch, Dispatch}]}]),
 
     {ok, {{one_for_one, 5, 10}, []}}.
