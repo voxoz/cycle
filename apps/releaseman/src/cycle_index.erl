@@ -16,7 +16,12 @@ body() ->
 
 releases() ->
     Builds = string:tokens(os:cmd(["ls -1 buildlogs"]),"\n"),
-    [ #h1{ body = "Continuous Integration Cycle"}, #h2{ body = "Stages" },
+    [ #h1{ body = "Continuous Integration Cycle"}, 
+      #h2{ body = "Timeline Top 5"},
+      [ #p{ body = #link { body = R#release.id,
+        url="/index?release="++R#release.user ++ "-" ++ R#release.repo ++ "&build=" ++ R#release.name}}
+        || R <- lists:sublist(lists:reverse(cycle_handler:list()),5) ],
+      #h2{ body = "Stages" },
       [ #p{ body = #link { body = R, url= "/index?release="++R }} || R <- Builds ] ].
 
 builds(Release) ->

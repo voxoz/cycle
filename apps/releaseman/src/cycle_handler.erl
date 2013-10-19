@@ -12,19 +12,17 @@ handle(Req, State) ->
     Path = lists:reverse(string:tokens(binary_to_list(Params),"/")),
     [Repo,User|Rest] = Path,
     {Status,HTML} = req(Repo,User),
-    {ok, ResponseReq} = cowboy_req:reply(200, [], HTML, NewReq),
+    {ok, ResponseReq} = cowboy_req:reply(Status, [], HTML, NewReq),
     {ok, ResponseReq, State}.
 
 req(Repo,User) ->
     Name = [User,"-",Repo],
-    send(Repo,User,self()),
+    wf:send(builder,{build_req,Repo,User,self()}),
     receive
         queued -> {202,wf:to_binary(["<h1>202 Build Started</h1><a href=\"/index?release=",Name,"\">",Name,"</a>"])};
         denied -> {404,wf:to_binary(["<h1>404 User not allowed</h1>"])};
         locked -> {202,wf:to_binary(["<h1>202 Queue Locked</h1>Try again later"])};
         Unknown -> wf:info("Unknown ACK: ~p",[Unknown]) end.
-
-send(Repo,User,Pid) -> wf:send(builder,{build_req,Repo,User,Pid}).
 
 loop(State) -> ?MODULE:loop(
     receive 
@@ -50,8 +48,6 @@ cmd({User,Repo,Docroot,Buildlogs,LogFolder},No,List) ->
     File = lists:flatten([Buildlogs,"/",LogFolder,"/",FileName]),
     file:write_file(File,Message).
 
-create_dir(Docroot) -> os:cmd("mkdir -p \"" ++ Docroot ++ "\"").
-
 build(Repo,User) ->
     Docroot = "repos/" ++ User ++ "-" ++ Repo,
     wf:info("Hook worker called ~p",[Docroot]),
@@ -69,8 +65,9 @@ build(Repo,User) ->
                 "./styles.sh","./javascript.sh","./start.sh"],
     [ cmd(Ctx,No,lists:nth(No,Script)) || No <- lists:seq(1,length(Script)) ].
 
-create_release(User,Repo) ->
-    ets:insert(releases,#release{user=User,repo=Repo,id=User++"/"++Repo,name=User++"/"++Repo}).
-
-list_releases() -> ets:foldl(fun(C,Acc) -> [C|Acc] end,[],releases).
-
+load_releases(Repo) -> Rels = string:tokens(os:cmd("ls -1 buildlogs/"++Repo),"\n"), [ create(R,Repo) || R <-Rels].
+load() -> Repos = string:tokens(os:cmd("ls -1 buildlogs"),"\n"), [ load_releases(R) || R <- Repos ].
+list() -> lists:keysort(3,ets:foldl(fun(C,Acc) -> [C|Acc] end,[],releases)).
+create(Release,Project) ->
+    [User,Repo] = string:tokens(Project,"-"),
+    ets:insert(releases,#release{user=User,repo=Repo,id=User++"/"++Repo++" "++Release,name=Release}).
