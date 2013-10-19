@@ -20,6 +20,7 @@ init([]) ->
 
     os:cmd("install -d buildlogs"),
     ets:new(releases, [named_table,{keypos,#release.id},public]),
+    cycle_handler:load(),
     spawn(fun() -> wf:reg(builder), cycle_handler:loop([]) end),
 
     {ok, _} = cowboy:start_http(http, 10, [{port, 8989}],[{env, [{dispatch, Dispatch}]}]),
