@@ -45,4 +45,4 @@ release(Release) -> #h1{body= Release ++ " release"}.
 build(Build) -> #h2{ body = "Steps for " ++ Build ++ " build"  }.
 step(Step) -> #h3{body = "Step " ++ wf:to_list(base64:decode(Step))}.
 status(Step) -> Tokens = lists:reverse(string:tokens(wf:to_list(base64:decode(Step))," ")),
-    [Code|_] = Tokens, wf:info("Code: ~p",[Code]), case Code of "0" -> "green"; _ -> "red" end.
+    [Code|_] = Tokens, case Code of "0" -> "green"; _ -> "red" end.

@@ -12,19 +12,20 @@ handle(Req, State) ->
     Path = lists:reverse(string:tokens(binary_to_list(Params),"/")),
     [Repo,User|Rest] = Path,
     {Status,HTML} = req(Repo,User),
-    {ok, ResponseReq} = cowboy_req:reply(Status, [], HTML, NewReq),
+    {ok, ResponseReq} = cowboy_req:reply(200, [], HTML, NewReq),
     {ok, ResponseReq, State}.
 
 req(Repo,User) ->
     Name = [User,"-",Repo],
     wf:send(builder,{build_req,Repo,User,self()}),
     receive
-        queued -> {202,wf:to_binary(["<h1>202 Build Started</h1><a href=\"/index?release=",Name,"\">",Name,"</a>"])};
-        denied -> {404,wf:to_binary(["<h1>404 User not allowed</h1>"])};
-        locked -> {202,wf:to_binary(["<h1>202 Queue Locked</h1>Try again later"])};
-        Unknown -> wf:info("Unknown ACK: ~p",[Unknown]) end.
+        queued  -> {202,wf:to_binary(["<h1>202 Build Started</h1><a href=\"/index?release=",Name,"\">",Name,"</a>"])};
+        denied  -> {404,wf:to_binary(["<h1>404 User not allowed</h1>"])};
+        locked  -> {202,wf:to_binary(["<h1>202 Queue Locked</h1>Try again later"])};
+        Unknown -> {404,wf:info("Unknown ACK: ~p",[Unknown])} end.
 
-loop(State) -> ?MODULE:loop(
+loop(State) ->
+    ?MODULE:loop(
     receive 
         {build_done} -> wf:info("Build Done"), [];
         {build,Repo,User,Pid} -> 
@@ -49,13 +50,15 @@ cmd({User,Repo,Docroot,Buildlogs,LogFolder},No,List) ->
     file:write_file(File,Message).
 
 build(Repo,User) ->
+    Project = User ++ "-" ++ Repo,
     Docroot = "repos/" ++ User ++ "-" ++ Repo,
     wf:info("Hook worker called ~p",[Docroot]),
-    Buildlogs = "buildlogs/"++ User ++ "-" ++ Repo,
+    Buildlogs = "buildlogs/" ++ Project,
     {{Y,M,D},{H,Min,S}} = calendar:universal_time_to_local_time(calendar:now_to_datetime(now())),
     LogFolder = io_lib:format("~p-~p-~p ~p:~p:~p",[Y,M,D,H,Min,S]),
-    os:cmd(["install -d ",Docroot]),
+    os:cmd(["install -d \"repos/",User,"-",Repo,"\""]),
     os:cmd(["install -d \"",Buildlogs,"/",LogFolder,"\""]),
+    create(LogFolder,Project),
     Ctx = {User,Repo,Docroot,Buildlogs,LogFolder},
     case os:cmd(["ls ",Docroot]) of
         [] -> os:cmd(["git clone git://github.com/",User,"/",Repo,".git ",Docroot]);
