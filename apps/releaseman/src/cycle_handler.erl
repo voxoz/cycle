@@ -59,7 +59,6 @@ build(Repo,User) ->
     {{Y,M,D},{H,Min,S}} = calendar:universal_time_to_local_time(calendar:now_to_datetime(now())),
     LogFolder = io_lib:format("~p-~p-~p ~p:~p:~p",[Y,M,D,H,Min,S]),
     os:cmd(["install -d ",Docroot]),
-%    os:cmd(["install -d buildlogs/",User,"-",Repo]),
     os:cmd(["install -d \"",Buildlogs,"/",LogFolder,"\""]),
     Ctx = {User,Repo,Docroot,Buildlogs,LogFolder},
     case os:cmd(["ls ",Docroot]) of
