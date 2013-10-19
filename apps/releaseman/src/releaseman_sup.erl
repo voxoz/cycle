@@ -14,6 +14,7 @@ init([]) ->
             {"/static/[...]", cowboy_static, [{directory, {priv_dir, releaseman, [<<"static">>]}},
                                                 {mimetypes, {fun mimetypes:path_to_mimes/2, default}}]},
             {"/github/hook/[...]", cycle_handler, []},
+            {"/ws/[...]", bullet_handler, [{handler, n2o_bullet}]},
             {'_', n2o_cowboy, []}
         ]}
     ]),
@@ -23,6 +24,6 @@ init([]) ->
     cycle_handler:load(),
     spawn(fun() -> wf:reg(builder), cycle_handler:loop([]) end),
 
-    {ok, _} = cowboy:start_http(http, 10, [{port, 8989}],[{env, [{dispatch, Dispatch}]}]),
+    {ok, _} = cowboy:start_http(http, 10, [{port, wf:config(port)}],[{env, [{dispatch, Dispatch}]}]),
 
     {ok, {{one_for_one, 5, 10}, []}}.
