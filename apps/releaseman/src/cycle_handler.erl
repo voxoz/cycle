@@ -63,7 +63,7 @@ build(Repo,User) ->
     case os:cmd(["ls ",Docroot]) of
         [] -> os:cmd(["git clone git://github.com/",User,"/",Repo,".git ",Docroot]);
         _ -> ok end,
-    Script = [ "make stop","git pull","make update-deps","make start" ],
+    Script = [ "make stop","git pull","make update-deps","make compile","make start" ],
     [ cmd(Ctx,No,lists:nth(No,Script)) || No <- lists:seq(1,length(Script)) ].
 
 load_releases(Repo) -> Rels = string:tokens(os:cmd("ls -1 buildlogs/"++Repo),"\n"), [ create(R,Repo) || R <-Rels].
