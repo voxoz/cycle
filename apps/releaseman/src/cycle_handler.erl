@@ -72,3 +72,4 @@ list() -> lists:keysort(3,ets:foldl(fun(C,Acc) -> [C|Acc] end,[],releases)).
 create(Release,Project) ->
     [User,Repo] = string:tokens(Project,"-"),
     ets:insert(releases,#release{user=User,repo=Repo,id=User++"/"++Repo++" "++Release,name=Release}).
+
