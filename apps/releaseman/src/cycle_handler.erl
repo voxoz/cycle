@@ -43,7 +43,7 @@ loop(State) ->
 
 cmd({User,Repo,Docroot,Buildlogs,LogFolder},No,List) ->
     wf:info("Command: ~p in ~p",[List,Docroot]),
-    Message = os:cmd(["cd ",Docroot," && ",List]),
+    Message = os:cmd(["cd ",Docroot," && ",List," >&2|echo <&2;echo $?"]),
     [ErrorCode|_] = lists:reverse(string:tokens(Message,"\n")),
     FileName = binary_to_list(base64:encode(lists:flatten([wf:f("~2..0B",[No])," ",List," ",ErrorCode]))),
     File = lists:flatten([Buildlogs,"/",LogFolder,"/",FileName]),
@@ -63,9 +63,7 @@ build(Repo,User) ->
     case os:cmd(["ls ",Docroot]) of
         [] -> os:cmd(["git clone git://github.com/",User,"/",Repo,".git ",Docroot]);
         _ -> ok end,
-    Script = [  "./stop.sh","./update.sh","./compile.sh",
-                "./nitrogen_static.sh","./release.sh","./release_sync.sh",
-                "./styles.sh","./javascript.sh","./start.sh"],
+    Script = [ "make stop","git pull","make update-deps","make start" ],
     [ cmd(Ctx,No,lists:nth(No,Script)) || No <- lists:seq(1,length(Script)) ].
 
 load_releases(Repo) -> Rels = string:tokens(os:cmd("ls -1 buildlogs/"++Repo),"\n"), [ create(R,Repo) || R <-Rels].
