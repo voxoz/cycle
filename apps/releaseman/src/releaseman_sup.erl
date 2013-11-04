@@ -24,6 +24,6 @@ init([]) ->
     cycle_handler:load(),
     spawn(fun() -> wf:reg(builder), cycle_handler:loop([]) end),
 
-    {ok, _} = cowboy:start_http(http, 10, [{port, wf:config(port)}],[{env, [{dispatch, Dispatch}]}]),
+    {ok, _} = cowboy:start_http(http, 10, [{port, wf:config(cycle_port)}],[{env, [{dispatch, Dispatch}]}]),
 
     {ok, {{one_for_one, 5, 10}, []}}.
